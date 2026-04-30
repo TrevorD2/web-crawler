@@ -8,7 +8,7 @@ from collections import Counter
 scraper_log = get_logger("Scraper", "Worker")
 cache = set()
 
-DENY_STATUS = {404, 500}
+DENY_STATUS = {404, 500, 608}
 MIN_VARIETY = 20
 MIN_TOTAL = 30
 
@@ -33,8 +33,7 @@ def scraper(url, resp):
     
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
-    if _check_information_value(soup): 
-        scraper_log.info(f"Failed information value check, adding to deny : {url}")
+    if not _check_information_value(soup): 
         _add_to_deny(url)
 
     links = extract_next_links(url, soup)
@@ -89,12 +88,10 @@ def is_valid(url):
         if ext: return False
 
         if url in DENY_URLS: 
-            scraper_log.info(f"Denied via URL: {url}")
             return False
 
         for rule in DENY_RULES:
             if re.search(rule, url): 
-                scraper_log.info(f"Denied via match rule: {url}, url matches {rule}")
                 return False
 
         allowed_domains = [

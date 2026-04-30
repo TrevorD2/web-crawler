@@ -7,6 +7,7 @@ import requests
 import scraper
 import time
 
+LARGE_FILE = 20_000_000_000 # 40 MB
 
 class Worker(Thread):
     def __init__(self, worker_id, config, frontier, writer):
@@ -29,7 +30,12 @@ class Worker(Thread):
                 break
 
             try:
+
                 resp = download(tbd_url, self.config, self.logger)
+
+                if resp.raw_response != None and len(resp.raw_response.content) > LARGE_FILE:
+                    self.logger.info(f"Downloading large file: {tbd_url} of size {len(resp.raw_response.content)}")
+
             except requests.exceptions.ConnectionError as e:
                 self.logger.info(f"Connection error occured whilst fetching {tbd_url} : {e}")
 
