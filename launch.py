@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from utils.server_registration import get_cache_server
 from utils.config import Config
 from crawler import Crawler
+from crawler.writer import Writer
 
 
 def main(config_file, restart):
@@ -11,9 +12,11 @@ def main(config_file, restart):
     cparser.read(config_file)
     config = Config(cparser)
     config.cache_server = get_cache_server(config, restart)
-    crawler = Crawler(config, restart)
-    crawler.start()
 
+    writer = Writer("data.jsonl")
+    crawler = Crawler(config, restart, writer)
+
+    crawler.start()
 
 if __name__ == "__main__":
     parser = ArgumentParser()
