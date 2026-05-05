@@ -4,6 +4,7 @@ from urllib.parse import urlparse, urldefrag, urljoin
 from utils import get_logger
 from bs4 import BeautifulSoup
 from collections import Counter
+from processing_utils import tokenize
 
 scraper_log = get_logger("Scraper", "Worker")
 cache = set()
@@ -18,23 +19,13 @@ with open('deny_rules.txt', 'r') as file:
 with open('deny_urls.txt', 'r') as file:
     DENY_URLS = set(map(lambda x: x.strip(), file.readlines()))
 
-with open('stopwords.txt', 'r') as file:
-    STOP_WORDS = set(map(lambda x: x.strip(), file.readlines()))
-
 def scraper(url, resp):
     cache.add(url)
 
-    if resp.status != 200:
-        scraper_log.info(f"Error occured whilst scraping {url} : {resp.error}")
-        if resp.status in DENY_STATUS: 
-            scraper_log.info(f"Failed status check, adding to deny : {url}")
-            _add_to_deny(url)
-        return []
-    
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     if not _check_information_value(soup): 
-        _add_to_deny(url)
+        add_to_deny(url)
 
     links = extract_next_links(url, soup)
 
@@ -62,7 +53,6 @@ def extract_next_links(url, soup):
 
         links.append(clean_url)
 
-    time.sleep(0.5)
     return links
 
 def is_valid(url):
@@ -77,7 +67,7 @@ def is_valid(url):
             return False
         ext = re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
+            + r"|png|tiff?|mid|mp2|mp3|mp4|ppsx"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
@@ -111,11 +101,7 @@ def text(resp):
     return soup.get_text()
 
 
-def _tokenize(txt: str) -> list[str]:
-    pattern = r"[A-Za-z0-9](?:[A-Za-z0-9-']*[A-Za-z0-9])?|[A-Za-z0-9]"
-    return [tkn for tkn in re.findall(pattern, txt) if tkn not in STOP_WORDS]
-
-def _add_to_deny(rule: str) -> None:
+def add_to_deny(rule: str) -> None:
     with open('deny_urls.txt', 'a') as f:
         f.write(rule + '\n')
 
@@ -123,7 +109,7 @@ def _check_information_value(soup):
 
     text = soup.get_text()
 
-    tkns = _tokenize(text)
+    tkns = tokenize(text)
     counter = Counter(tkns)
 
     return len(counter) > MIN_VARIETY and counter.total() > MIN_TOTAL

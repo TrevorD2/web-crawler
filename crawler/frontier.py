@@ -17,6 +17,7 @@ class Frontier(object):
         
         self.lock = RLock()
         self.last_access = {}
+
         
         if not os.path.exists(self.config.save_file) and not restart:
             # Save file does not exist, but request to load save.
@@ -65,9 +66,11 @@ class Frontier(object):
 
                     if now - last_time < self.config.time_delay:
                         self.to_be_downloaded.put(url)
+                        time.sleep(0.1)
                         continue
 
                     self.last_access[domain] = now
+
                     return url
 
             except Empty:

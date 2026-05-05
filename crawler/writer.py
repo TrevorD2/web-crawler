@@ -29,11 +29,11 @@ class Writer(Thread):
         finally:
             self.close()
 
-    def write(self, url, text, done=False):
+    def write(self, url, text, fingerprint, done=False):
         if done:
             self.queue.put(None)
             return
-        self.queue.put({"url": url, "content": text})
+        self.queue.put({"url": url, "content": text, "fingerprint": fingerprint})
 
     def close(self):
         self.file.close()

@@ -30,7 +30,7 @@ class Crawler(object):
         for worker in self.workers:
             worker.join()
 
-        self.writer.write(None, None, done=True)
+        self.writer.write(None, None, None, done=True)
         self.writer.join()
 
         self.logger.info("Closing Frontier database...")

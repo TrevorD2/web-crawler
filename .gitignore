@@ -107,4 +107,3 @@ venv.bak/
 .vscode/
 
 *.full.py
-*.shelve
