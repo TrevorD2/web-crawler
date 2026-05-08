@@ -45,7 +45,7 @@ def get_fingerprint(txt, k=64) -> int:
 
     return fingerprint
 
-def is_duplicate(f1, f2, k=64, T=0.9):
+def is_duplicate(f1, f2, k=64, T=0.95):
     both = f1 & f2
     cnt = bin(both).count("1")
 

@@ -49,11 +49,10 @@ def most_common() -> list[tuple[str, int]]:
             content = page["content"]
             current_print = page["fingerprint"]
 
-            if dup:=_check_duplication(fingerprints, current_print, debug_mode=True):
-                print(f"DUPLICATE FOUND: {url} matches {dup}")
+            if _check_duplication(fingerprints, current_print):
                 continue # This page is a duplicate, don't count it towards most common words
 
-            _add_to_fingerprints(fingerprints, current_print, url=url)
+            _add_to_fingerprints(fingerprints, current_print)
 
             counter = get_counter(content)
 
@@ -73,11 +72,10 @@ def subdomains() -> dict[str, int]:
             url = page["url"]
             current_print = page["fingerprint"]
 
-            if dup:=_check_duplication(fingerprints, current_print, debug_mode=True):
-                print(f"DUPLICATE FOUND: {url} matches {dup}")
+            if _check_duplication(fingerprints, current_print):
                 continue # This page is a duplicate, don't count it towards subdomain count
 
-            _add_to_fingerprints(fingerprints, current_print, url=url)
+            _add_to_fingerprints(fingerprints, current_print)
 
             domain = urlparse(url).netloc
 
@@ -117,22 +115,22 @@ def _split_print(fingerprint: int):
     return prints
 
 
-def _add_to_fingerprints(fingerprints: dict, current_print: int, url=None):
+def _add_to_fingerprints(fingerprints: dict, current_print: int):
     prints = _split_print(current_print)
 
     for subprint in prints:
         if not (subprint in fingerprints):
             fingerprints[subprint] = []
 
-        fingerprints[subprint].append(current_print if url == None else (current_print, url))
+        fingerprints[subprint].append(current_print)
 
-def _check_duplication(fingerprints: dict, current_print, debug_mode=False):
+def _check_duplication(fingerprints: dict, current_print):
     prints = _split_print(current_print)
 
     for subprint in prints:
         if subprint in fingerprints:
             for other_print in fingerprints[subprint]:
-                if is_duplicate(other_print if not debug_mode else other_print[0], current_print):
+                if is_duplicate(other_print, current_print):
                     return other_print
                 
     return False
